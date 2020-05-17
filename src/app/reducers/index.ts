@@ -7,13 +7,21 @@ import {
 } from '@ngrx/store';
 import { environment } from '../../environments/environment';
 import * as fromRouter from '@ngrx/router-store';
+import * as fromUser from './user-state';
 
 export interface State {
-  router: fromRouter.RouterReducerState<any>
+  router: fromRouter.RouterReducerState<any>,
+  [fromUser.userStateFeatureKey]: fromUser.State
+}
+
+export const initialState: State = {
+  router: undefined,
+  [fromUser.userStateFeatureKey]: fromUser.initialState
 }
 
 export const reducers: ActionReducerMap<State> = {
-  router: fromRouter.routerReducer 
+  router: fromRouter.routerReducer,
+  [fromUser.userStateFeatureKey]: fromUser.reducer 
 };
 
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];
@@ -33,4 +41,10 @@ export const {
   selectUrl,            // select the current url
 } = fromRouter.getSelectors(selectRouter);
 
-export const getPlantType = createSelector(selectRouteParams('plantType'), (plantType) => plantType)
+const selectUsersState = createFeatureSelector(fromUser.userStateFeatureKey)
+
+export const getPlantType = createSelector(selectRouteParam('plantType'), (plantType) => plantType);
+
+export const getUser = createSelector(selectUsersState, (state: fromUser.State) => state.user);
+
+export const getPlantListingData = createSelector(getPlantType, getUser, (plantType, user) => ({plantType, user}));
